@@ -1,4 +1,5 @@
 #include "parse.h"
+#include "bot.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -17,11 +18,23 @@ char *irc_getline(char *buf) {
 	return line;
 }
 
-char *irc_nextline() {
-	char *line = strtok_r(NULL, "\r\n", &nextline);
-	if (line == NULL) {
+char *irc_nextline(struct bot *b) {
+	if ((strcmp(nextline+1, "") != 0) && !strstr(nextline+1, "\r\n")) {
+		// act like nothing happened and just return NULL :P
+		char *rest = strdup(nextline+1);
+		memset(&b->buffer, 0, BUFSIZE);
+		strcpy(b->buffer, rest);
 		return NULL;
 	}
+
+	char *line = strtok_r(NULL, "\r\n", &nextline);
+	if (line == NULL) {
+		memset(&b->buffer, 0, BUFSIZE);
+		return NULL;
+	}
+
+	line++;
+
 
 	return strdup(line);
 }
@@ -45,9 +58,22 @@ struct message *parse(char *data) {
 		m->meth = strdup("PING");
 	    m->arg = last(data);
 	} else {
-		m->host = strdup(strtok_r(data, " ", &parseline));
-		m->meth = strdup(strtok_r(NULL, " ", &parseline));
-		m->arg = strdup(strtok_r(NULL, "", &parseline));
+		m->host = strtok_r(data, " ", &parseline);
+
+		if (m->host != NULL) {
+			m->host = strdup(m->host);
+		}
+
+		m->meth = strtok_r(NULL, " ", &parseline);
+
+		if (m->meth != NULL) {
+			m->meth = strdup(m->meth);
+		}
+
+		m->arg = strtok_r(NULL, "", &parseline);
+		if (m->arg != NULL) {
+			m->arg = strdup(m->arg);
+		}
 	}
 
 	parseline = NULL;

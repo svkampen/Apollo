@@ -6,14 +6,16 @@
 void privmsg(struct bot *bot, struct message *msg) {
 	char *strptr;
 	char *arg = strdup(msg->arg);
+	char *host = strdup(msg->host);
 
-	char *nick = strtok_r(msg->host, "!", &strptr);
+	char *nick = strtok_r(host, "!", &strptr);
 	nick++; // skip the :
 
 	strptr = NULL;
 
 	char *chan = strtok_r(arg, " ", &strptr);
-	char *message = strtok_r(NULL, ":", &strptr);
+	char *message = strtok_r(NULL, "", &strptr);
+	message++;
 
 	printf("[%s] <%s> %s\n", chan, nick, message);
 
@@ -22,5 +24,6 @@ void privmsg(struct bot *bot, struct message *msg) {
 	}
 
 	free(arg);
+	free(host);
 }
 
