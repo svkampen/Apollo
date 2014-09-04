@@ -93,7 +93,12 @@ void run() {
 			b.running = 0;
 		}
 
-		for (char *i = irc_getline(b.buffer); i != NULL; i = irc_nextline(&b)) {
+		char *i = irc_getline(&b);
+		if (i == NULL) {
+			continue;
+		}
+
+		for (; i != NULL; i = irc_nextline(&b)) {
 
 #ifdef DEBUG
 			printf("%s\n", i);

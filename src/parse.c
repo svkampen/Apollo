@@ -1,5 +1,4 @@
 #include "parse.h"
-#include "bot.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -13,15 +12,18 @@ int startswith(const char *str, const char *pre) {
 	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
 }
 
-char *irc_getline(char *buf) {
-	char *line = strdup(strtok_r(buf, "\r\n", &nextline));
+char *irc_getline(struct bot *b) {
+	if (!strstr(b->buffer, "\r\n")) {
+		return NULL;
+	}
+	char *line = strdup(strtok_r(b->buffer, "\r\n", &nextline));
 	return line;
 }
 
 char *irc_nextline(struct bot *b) {
 	if ((strcmp(nextline+1, "") != 0) && !strstr(nextline+1, "\r\n")) {
 		// act like nothing happened and just return NULL :P
-		char *rest = strdup(nextline+1);
+		char *rest = strdup(nextline);
 		memset(&b->buffer, 0, BUFSIZE);
 		strcpy(b->buffer, rest);
 		return NULL;
@@ -32,9 +34,6 @@ char *irc_nextline(struct bot *b) {
 		memset(&b->buffer, 0, BUFSIZE);
 		return NULL;
 	}
-
-	line++;
-
 
 	return strdup(line);
 }
