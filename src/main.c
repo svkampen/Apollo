@@ -15,6 +15,7 @@
 #include "list.h"
 #include "hashmap.h"
 #include "handlers.h"
+#include "plugins.h"
 
 #define EQ(a, b) (strcmp(a, b) == 0)
 
@@ -29,6 +30,7 @@ static char PORT[] = "6667";
 static struct bot b;
 
 void init_handlers();
+void __msg(struct bot*, char*, char*);
 void run();
 
 int main(int argc, char *argv[]) {
@@ -61,11 +63,23 @@ int main(int argc, char *argv[]) {
 }
 
 void init_handlers() {
+
+	b.msg = __msg;
+
 	b.handlers = hashmap_create(32);
 	struct double_link *privmsg_handlers = calloc(1, sizeof(struct double_link));
 	hashmap_set("PRIVMSG", (void*)privmsg_handlers, b.handlers);
 
 	privmsg_handlers->ptr = (void*)privmsg;
+
+	b.commands = hashmap_create(32);
+
+	if (!load_plugin(&b, "common")) {
+		fprintf(stderr, "error loading 'common' plugin, exiting..\n");
+		exit(8);
+	}
+
+
 }
 
 void run() {
@@ -131,4 +145,6 @@ void run() {
 	}
 }
 			
-
+void __msg(struct bot *bot, char *chan, char *msg) {
+	sockprintf(bot->socket, "PRIVMSG %s :%s", chan, msg);
+}

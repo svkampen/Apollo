@@ -1,7 +1,10 @@
 #include "handlers.h"
+#include "parse.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+typedef void (*callback)(struct bot*, char*, char*, char*);
 
 void privmsg(struct bot *bot, struct message *msg) {
 	char *strptr;
@@ -23,6 +26,15 @@ void privmsg(struct bot *bot, struct message *msg) {
 		bot->running = 0;
 	}
 
+	char *cmd = strtok_r(message+1, " ", &strptr);
+	char *args = strtok_r(NULL, "", &strptr);
+
+	callback cb = (callback)hashmap_get(cmd, bot->commands);
+	if (cb) {
+		cb(bot, nick, chan, args);
+	}
+	
+	
 	free(arg);
 	free(host);
 }

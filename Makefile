@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-std=gnu11 -ggdb -O0
 OUT=bin/apollo
-LDFLAGS=-I../include/ -I../hashmap/include/ -L../hashmap/bin -lhashmap
+LDFLAGS=-I../include/ -I../hashmap/include/ -L../hashmap/bin -lhashmap -ldl
 FILES=*.c
 
 all:
@@ -13,3 +13,6 @@ debug:
 	cd hashmap; make shared
 	cp hashmap/bin/libhashmap.so bin
 	cd src; $(CC) $(CFLAGS) -DDEBUG $(LDFLAGS) -o ../$(OUT) $(FILES)
+
+plugins:
+	cd plugins; make

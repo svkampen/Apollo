@@ -8,7 +8,11 @@
 struct bot {
 	int socket;
 	struct hashmap *handlers;
+	struct hashmap *commands;
 	uint8_t running;
 	char buffer[BUFSIZE];
+
+	void (*msg)(struct bot *, char *, char *);
 };
+
 #endif
