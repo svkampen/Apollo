@@ -14,5 +14,8 @@ debug:
 	cp hashmap/bin/libhashmap.so bin
 	cd src; $(CC) $(CFLAGS) -DDEBUG $(LDFLAGS) -o ../$(OUT) $(FILES)
 
-plugins:
-	cd plugins; make
+plugs:
+	mkdir -p bin/plugins
+	cd hashmap; make shared
+	cp hashmap/bin/libhashmap.so bin
+	cd plugins; make all
