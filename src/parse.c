@@ -26,6 +26,7 @@ char *irc_nextline(struct bot *b) {
 		char *rest = strdup(nextline);
 		memset(&b->buffer, 0, BUFSIZE);
 		strcpy(b->buffer, rest);
+		free(rest);
 		return NULL;
 	}
 
@@ -40,7 +41,7 @@ char *irc_nextline(struct bot *b) {
 
 char *last(char *data) {
 	char *part = strtok(data, " ");
-	char *toret;
+	char *toret = NULL;
 
 	while ((part = strtok(NULL, " ")) != NULL) {
 		toret = part;

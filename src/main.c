@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <dlfcn.h>
 
 #include "net.h"
 #include "parse.h"
@@ -18,6 +19,14 @@
 #include "plugins.h"
 
 #define EQ(a, b) (strcmp(a, b) == 0)
+#ifdef _GNUC_
+#define lambda(ret_type, name, args, body) \
+	({ \
+	 ret_type name args \
+	 body \
+	 &name; \
+	 })
+#endif
 
 typedef struct double_link ll_link;
 typedef void (*handler_t)(struct bot*, struct message*);
@@ -30,6 +39,7 @@ static char PORT[] = "6667";
 static struct bot b;
 
 void init_handlers();
+void destroy();
 void __msg(struct bot*, char*, char*);
 void run();
 
@@ -54,29 +64,71 @@ int main(int argc, char *argv[]) {
 	sockprintf(b.socket, "NICK %s", NICK);
 	sockprintf(b.socket, "USER apollo * * :hi im artemis' sis");
 
+	b.admin = "svkampen";
+
 	run();
+	destroy();
 	close(b.socket);
 
-	printf("[net] bye!\n");
+	hashmap_destroy(b.handlers);
+	hashmap_destroy(b.commands);
+	hashmap_destroy(b.plugins);
+
+
+	printf("[core\tinfo] bye!\n");
 
 	return 0;
 }
+
+void unload_plugin(void *val) {
+	void (*destr)(struct bot*) = (void (*)(struct bot*))dlsym(val, "destroy");
+	if (!destr) {
+		fprintf(stderr, "[core\twarn] could not load destroy function: %s\n", dlerror());
+		fprintf(stderr, "[core\twarn] THIS IS A POSSIBLE MEMORY LEAK!.\n");
+	} else {
+		destr(&b);
+	}
+
+	dlclose(val);
+}
+
+void __unload_plugin(char *key, void *val) {
+	printf("[core\tinfo] unloading plugin %s\n", key);
+
+	unload_plugin(val);
+}
+
+void destroy() {
+	hashmap_foreach(b.plugins, __unload_plugin);
+
+	struct double_link *ph = hashmap_get("PRIVMSG", b.handlers);
+	if (ph) {
+		free_list(ph);
+	}
+}
+
 
 void init_handlers() {
 
 	b.msg = __msg;
 
-	b.handlers = hashmap_create(32);
+	b.handlers = hashmap_create(16);
 	struct double_link *privmsg_handlers = calloc(1, sizeof(struct double_link));
 	hashmap_set("PRIVMSG", (void*)privmsg_handlers, b.handlers);
 
 	privmsg_handlers->ptr = (void*)privmsg;
 
-	b.commands = hashmap_create(32);
+	b.commands = hashmap_create(16);
+	b.plugins = hashmap_create(16);
+	b.data = hashmap_create(8);
 
 	if (!load_plugin(&b, "common")) {
-		fprintf(stderr, "error loading 'common' plugin, exiting..\n");
+		fprintf(stderr, "[core\tfail] error loading common plugin, exiting..\n");
 		exit(8);
+	}
+	
+	if (!load_plugin(&b, "uncommon")) {
+		printf("[core\tinfo] the uncommon plugin is not present.\n");
 	}
 
 
@@ -122,6 +174,7 @@ void run() {
 				char *t = last(i);
 				sockprintf(b.socket, "PONG %s", t);
 				free(t);
+				free(i);
 				continue;
 			}
 
@@ -130,7 +183,6 @@ void run() {
 			if (EQ(msg->meth, "422") || EQ(msg->meth, "376")) {
 				// welcome message
 				// join #programming
-				printf("[core] endofmotd received.\n");
 				sockprintf(b.socket, "JOIN #bots");
 			}
 

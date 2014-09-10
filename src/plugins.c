@@ -9,26 +9,27 @@ int load_plugin(struct bot *bot, char *name) {
 	strcat(filename, name);
 	strcat(filename, ".so");
 	
-	printf("%s\n", filename);
-
 	void (*init)(struct bot*);
 
-	void *plug = dlopen(filename, RTLD_LAZY);
+	void *plug = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
 
-	if (plug == NULL) {
-		fprintf(stderr, "[core] error loading plugin: %s\n", dlerror());
+	if (!plug) {
+		fprintf(stderr, "[core\twarn] error loading plugin: %s\n", dlerror());
 		free(filename);
 		return 0;
 	}
 
 	init = (void (*)(struct bot*))dlsym(plug, "init");
-	if (init == NULL) {
-		fprintf(stderr, "[core] error loading plugin init: %s\n", dlerror());
+	if (!init) {
+		fprintf(stderr, "[core\twarn] error loading plugin init: %s\n", dlerror());
 		free(filename);
 		return 0;
 	}
 
 	init(bot);
+
+	hashmap_set(name, plug, bot->plugins);
+	printf("[core\tinfo] loaded plugin %s\n", name);
 
 	free(filename);
 	return 1;

@@ -77,13 +77,13 @@ int getsock(struct addrinfo *info) {
 
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 			ipstr, sizeof ipstr);
-	printf("[net] connecting to %s...\n", ipstr);
-	printf("[net] connected.\n");
+	printf("[net\tinfo] connecting to %s...\n", ipstr);
+	printf("[net\tinfo] connected.\n");
 
 	return sockfd;
 }
 
-int sockprintf(int sockfd, const char *fmt, ...) {
+void sockprintf(int sockfd, const char *fmt, ...) {
 	va_list a;
 	va_start(a, fmt);
 	int len = vsnprintf(NULL, 0, fmt, a);

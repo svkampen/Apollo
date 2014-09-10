@@ -1,5 +1,8 @@
 {
 	extern "C" {
 		sockprintf;
+		startswith;
+		load_plugin;
+		unload_plugin;
 	};
 };

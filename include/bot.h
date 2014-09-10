@@ -7,8 +7,12 @@
 
 struct bot {
 	int socket;
+	char *admin;
 	struct hashmap *handlers;
 	struct hashmap *commands;
+	struct hashmap *plugins;
+	struct hashmap *data;
+	int *x;
 	uint8_t running;
 	char buffer[BUFSIZE];
 

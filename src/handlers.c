@@ -20,18 +20,20 @@ void privmsg(struct bot *bot, struct message *msg) {
 	char *message = strtok_r(NULL, "", &strptr);
 	message++;
 
-	printf("[%s] <%s> %s\n", chan, nick, message);
+	printf("[core\tinfo] [%s] <%s> %s\n", chan, nick, message);
 
 	if (EQ(nick, "svkampen") && EQ(message, "'quit")) {
 		bot->running = 0;
 	}
 
-	char *cmd = strtok_r(message+1, " ", &strptr);
-	char *args = strtok_r(NULL, "", &strptr);
+	if (startswith(message, "'")) {
+		char *cmd = strtok_r(message+1, " ", &strptr);
+		char *args = strtok_r(NULL, "", &strptr);
 
-	callback cb = (callback)hashmap_get(cmd, bot->commands);
-	if (cb) {
-		cb(bot, nick, chan, args);
+		callback cb = (callback)hashmap_get(cmd, bot->commands);
+		if (cb) {
+			cb(bot, nick, chan, args);
+		}
 	}
 	
 	

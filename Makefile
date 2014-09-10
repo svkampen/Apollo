@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=gnu11 -ggdb -O2 -Wl,--dynamic-list=../export
+CFLAGS=-std=gnu11 -ggdb -O2 -Wl,--dynamic-list=../export -Wall -Werror
 OUT=bin/apollo
 LDFLAGS=-I../include/ -I../hashmap/include/ -L../hashmap/bin -lhashmap -ldl
 FILES=*.c

@@ -10,6 +10,6 @@ void sendall(int sockfd, const char *msg);
 void *get_in_addr(struct sockaddr *sa);
 struct addrinfo *get_addr_info(const char *host, const char *port);
 int getsock(struct addrinfo *info);
-int sockprintf(int sockfd, const char *fmt, ...);
+void sockprintf(int sockfd, const char *fmt, ...);
 
 #endif
