@@ -1,4 +1,5 @@
 #include "plugins.h"
+#include "main.h"
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@ int load_plugin(struct bot *bot, char *name) {
 	
 	void (*init)(struct bot*);
 
-	void *plug = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
+	void *plug = dlopen(filename, RTLD_NOW);
 
 	if (!plug) {
 		fprintf(stderr, "[core\twarn] error loading plugin: %s\n", dlerror());
@@ -35,4 +36,20 @@ int load_plugin(struct bot *bot, char *name) {
 	return 1;
 }
 
-	
+void unload_plugin(void *val) {
+	void (*destr)(struct bot*) = (void (*)(struct bot*))dlsym(val, "destroy");
+	if (!destr) {
+		fprintf(stderr, "[core\twarn] could not load destroy function: %s\n", dlerror());
+	} else {
+		destr(&b);
+	}
+
+	dlclose(val);
+}
+
+void __unload_plugin(char *key, void *val) {
+	printf("[core\tinfo] unloading plugin %s\n", key);
+
+	unload_plugin(val);
+}
+

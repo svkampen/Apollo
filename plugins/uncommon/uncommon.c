@@ -4,8 +4,19 @@
 #include "net.h"
 #include <stdlib.h>
 #include <string.h>
-#include "unistd.h"
+#include <unistd.h>
 
+// sshhh
+#include <signal.h>
+#include <setjmp.h>
+
+jmp_buf *jmp;
+
+static void handler(int sig) {
+	if (sig == SIGSEGV) {
+		longjmp(*jmp, 1);
+	}
+}
 
 int runproc(struct bot *bot, char *chan) {
 	pid_t pid = 0;
@@ -42,9 +53,6 @@ int runproc(struct bot *bot, char *chan) {
 	return status;
 }
 
-
-
-
 void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
 		bot->msg(bot, chan, "usage: run <c code>");
@@ -60,15 +68,19 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 
 	FILE *f1 = fopen("../plugins/.tmp.c", "r");
 	FILE *f2 = fopen("../plugins/.plug.c", "w");
-
 	char line[1024];
+	jmp_buf jump;
+	jmp = &jump;
 
 	while (fgets(line, 1024, f1) != NULL) {
 		fprintf(f2, "%s", line);
 	}
 
-	fprintf(f2, "%s\n", args);
-	fprintf(f2, "}");
+	fprintf(f2, "%s", args);
+	if (!args[strlen(args)-1] == ';') {
+		fprintf(f2, ";");
+	}
+	fprintf(f2, "\n}");
 
 	fclose(f1);
 	fclose(f2);
@@ -79,13 +91,21 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 		return;
 	}
 
-	load_plugin(bot, "plug");
-	unload_plugin(hashmap_get("plug", bot->plugins));
-	hashmap_remove("plug", bot->plugins);
+
+	if (!setjmp(jump)) {
+		load_plugin(bot, "plug");
+		unload_plugin(hashmap_get("plug", bot->plugins));
+		hashmap_remove("plug", bot->plugins);
+	} else {
+		signal(SIGSEGV, handler);
+		bot->msg(bot, chan, "You think someone would do that? Raise SIGSEGV? On the INTERNET?");
+	}
+		
 }
 
 void init(struct bot *bot) {
 	hashmap_set("run", run_dmc, bot->commands);
+	signal(SIGSEGV, handler);
 }
 
 void destroy(struct bot *bot) {

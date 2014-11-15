@@ -11,5 +11,6 @@ void *get_in_addr(struct sockaddr *sa);
 struct addrinfo *get_addr_info(const char *host, const char *port);
 int getsock(struct addrinfo *info);
 void sockprintf(int sockfd, const char *fmt, ...);
+void vssockprintf(int sockfd, const char *fmt, va_list a);
 
 #endif

@@ -1,6 +1,7 @@
 {
 	extern "C" {
 		sockprintf;
+		vssockprintf;
 		startswith;
 		load_plugin;
 		unload_plugin;

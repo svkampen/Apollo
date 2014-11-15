@@ -11,46 +11,36 @@
 #include <dlfcn.h>
 
 #include "net.h"
-#include "parse.h"
+#include "main.h"
 #include "bot.h"
 #include "list.h"
 #include "hashmap.h"
-#include "handlers.h"
+#include "message.h"
 #include "plugins.h"
 
+#include "cJSON.h"
+#include "config.h"
+
 #define EQ(a, b) (strcmp(a, b) == 0)
-#ifdef _GNUC_
-#define lambda(ret_type, name, args, body) \
-	({ \
-	 ret_type name args \
-	 body \
-	 &name; \
-	 })
-#endif
+#define CJSON_GET_STRING(var, name) char *name = cJSON_GetObjectItem(b.config, name)->valuestring;
 
 typedef struct double_link ll_link;
 typedef void (*handler_t)(struct bot*, struct message*);
 
-static char NICK[] = "apollo";
-static char HOST[] = "irc.sublumin.al";
-static char PORT[] = "6667";
-
-
-static struct bot b;
-
-void init_handlers();
-void destroy();
 void __msg(struct bot*, char*, char*);
-void run();
 
 int main(int argc, char *argv[]) {
+	if(access("config.json", F_OK)) {
+		// no config file.
+		printf("[core\tfail] no config file (config.json) found, exiting..\n");
+		exit(-1);
+	}
+
+	load_config(&b);
+	load_protocol(&b);
+
 	{
-		struct addrinfo *info;
-		if (argc > 1) {
-			info = get_addr_info(argv[1], PORT);
-		} else {
-			info = get_addr_info(HOST, PORT);
-		}
+		struct addrinfo *info = get_addr_info(b.host, b.port);
 
 		b.socket = getsock(info);
 		b.running = 1;
@@ -59,79 +49,37 @@ int main(int argc, char *argv[]) {
 		freeaddrinfo(info);
 	}
 
+	b.proto->init(&b);
 	init_handlers();
 
-	sockprintf(b.socket, "NICK %s", NICK);
-	sockprintf(b.socket, "USER apollo * * :hi im artemis' sis");
-
-	b.admin = "svkampen";
-
+	b.proto->connect();
 	run();
 	destroy();
+
 	close(b.socket);
-
-	hashmap_destroy(b.handlers);
-	hashmap_destroy(b.commands);
-	hashmap_destroy(b.plugins);
-
+	dlclose(b.proto->protolib);
 
 	printf("[core\tinfo] bye!\n");
-
 	return 0;
-}
-
-void unload_plugin(void *val) {
-	void (*destr)(struct bot*) = (void (*)(struct bot*))dlsym(val, "destroy");
-	if (!destr) {
-		fprintf(stderr, "[core\twarn] could not load destroy function: %s\n", dlerror());
-		fprintf(stderr, "[core\twarn] THIS IS A POSSIBLE MEMORY LEAK!.\n");
-	} else {
-		destr(&b);
-	}
-
-	dlclose(val);
-}
-
-void __unload_plugin(char *key, void *val) {
-	printf("[core\tinfo] unloading plugin %s\n", key);
-
-	unload_plugin(val);
 }
 
 void destroy() {
 	hashmap_foreach(b.plugins, __unload_plugin);
 
-	struct double_link *ph = hashmap_get("PRIVMSG", b.handlers);
-	if (ph) {
-		free_list(ph);
-	}
+	hashmap_destroy(b.plugins);
+	cJSON_Delete(b.config);
 }
 
-
 void init_handlers() {
-
-	b.msg = __msg;
-
-	b.handlers = hashmap_create(16);
-	struct double_link *privmsg_handlers = calloc(1, sizeof(struct double_link));
-	hashmap_set("PRIVMSG", (void*)privmsg_handlers, b.handlers);
-
-	privmsg_handlers->ptr = (void*)privmsg;
-
-	b.commands = hashmap_create(16);
-	b.plugins = hashmap_create(16);
-	b.data = hashmap_create(8);
+	b.plugins = hashmap_create(4);
 
 	if (!load_plugin(&b, "common")) {
 		fprintf(stderr, "[core\tfail] error loading common plugin, exiting..\n");
-		exit(8);
 	}
 	
 	if (!load_plugin(&b, "uncommon")) {
 		printf("[core\tinfo] the uncommon plugin is not present.\n");
 	}
-
-
 }
 
 void run() {
@@ -159,41 +107,7 @@ void run() {
 			b.running = 0;
 		}
 
-		char *i = irc_getline(&b);
-		if (i == NULL) {
-			continue;
-		}
-
-		for (; i != NULL; i = irc_nextline(&b)) {
-
-#ifdef DEBUG
-			printf("%s\n", i);
-#endif
-
-			if (startswith(i, "PING")) {
-				char *t = last(i);
-				sockprintf(b.socket, "PONG %s", t);
-				free(t);
-				free(i);
-				continue;
-			}
-
-			struct message *msg = parse(i);
-
-			if (EQ(msg->meth, "422") || EQ(msg->meth, "376")) {
-				// welcome message
-				// join #programming
-				sockprintf(b.socket, "JOIN #bots");
-			}
-
-			ll_link *handlers = hashmap_get(msg->meth, b.handlers);
-			for (ll_link *i = handlers; i != NULL; i = i->next) {
-				((handler_t)i->ptr)(&b, msg);
-			}
-
-			freemsg(msg);
-			free(i);
-		}
+		b.proto->tick();
 	}
 }
 			

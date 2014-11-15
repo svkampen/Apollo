@@ -1,6 +1,10 @@
 # Apollo
 Apollo is an IRC bot written in C.
 
+#### Requirements
+
+ * CMake (2.8 or higher)
+
 #### Compiling
 After `git clone`ing this repository, you will first need to initialize the submodules: `git submodule init` and `git submodule update`.
 
@@ -13,4 +17,12 @@ Apollo requires a hashmap implementation which is supplied as a submodule. It ha
 
 To fix this, set `LD_LIBRARY_PATH` to `.` or move libhashmap.so to your normal LD library path (most likely `/lib` or `/lib64`)
 
-After this, you can run apollo by changing directory to bin and running `./apollo <server>`
+Now, you'll have to create a config file (config.json). The config file specifies the host, port, and nick that apollo uses, as well as the protocol.  
+An example configuration file is as follows:
+    
+    {"host": "irc.sublumin.al",
+     "port": "6667",
+     "nick": "apollo",
+     "protocol": "irc"}
+    
+

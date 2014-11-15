@@ -86,12 +86,19 @@ int getsock(struct addrinfo *info) {
 void sockprintf(int sockfd, const char *fmt, ...) {
 	va_list a;
 	va_start(a, fmt);
-	int len = vsnprintf(NULL, 0, fmt, a);
+
+	vssockprintf(sockfd, fmt, a);
+
+	va_end(a);
+}
+
+void vssockprintf(int sockfd, const char *fmt, va_list a) {
+	va_list b;
+	va_copy(b, a);
+	int len = vsnprintf(NULL, 0, fmt, b);
 
 	char *buf = (char*) calloc(len + 3, 1);
-	va_end(a);
 
-	va_start(a, fmt);
 	vsnprintf(buf, len+1, fmt, a);
 
 	char *end = buf + len;
@@ -103,5 +110,5 @@ void sockprintf(int sockfd, const char *fmt, ...) {
 
 	sendall(sockfd, buf);
 	free(buf);
-	va_end(a);
+	va_end(b);
 }

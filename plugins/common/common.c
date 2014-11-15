@@ -92,11 +92,11 @@ void init(struct bot *bot) {
 	hashmap_set("sh", bash_cmd, bot->commands);
 }
 
-/* void destroy(struct bot *bot) {
+void destroy(struct bot *bot) {
 	Link *l = hashmap_get("NOTICE", bot->handlers);
 
 	if (!l) {
 		return;
 	}
 	free_list(l);
-} */
+}

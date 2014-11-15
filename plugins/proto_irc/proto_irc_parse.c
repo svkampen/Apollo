@@ -1,42 +1,13 @@
-#include "parse.h"
-#include <stdlib.h>
+#include "proto_irc_parse.h"
 #include <string.h>
-#include <stdio.h>
+#include <stdlib.h>
 
-char *nextline;
-char *parseline;
+char *nextline, *parseline;
 
 int startswith(const char *str, const char *pre) {
 	size_t lenpre = strlen(pre),
 		   lenstr = strlen(str);
 	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
-}
-
-char *irc_getline(struct bot *b) {
-	if (!strstr(b->buffer, "\r\n")) {
-		return NULL;
-	}
-	char *line = strdup(strtok_r(b->buffer, "\r\n", &nextline));
-	return line;
-}
-
-char *irc_nextline(struct bot *b) {
-	if ((strcmp(nextline+1, "") != 0) && !strstr(nextline+1, "\r\n")) {
-		// act like nothing happened and just return NULL :P
-		char *rest = strdup(nextline);
-		memset(&b->buffer, 0, BUFSIZE);
-		strcpy(b->buffer, rest);
-		free(rest);
-		return NULL;
-	}
-
-	char *line = strtok_r(NULL, "\r\n", &nextline);
-	if (line == NULL) {
-		memset(&b->buffer, 0, BUFSIZE);
-		return NULL;
-	}
-
-	return strdup(line);
 }
 
 char *last(char *data) {
@@ -86,4 +57,35 @@ void freemsg(struct message *msg) {
 	free(msg->meth);
 	free(msg->arg);
 	free(msg);
+}
+
+char *irc_getline(struct bot *b) {
+	if (!strstr(b->buffer, "\r\n")) {
+		return NULL;
+	}
+	char *line = strdup(strtok_r(b->buffer, "\r\n", &nextline));
+	return line;
+}
+
+char *irc_nextline(struct bot *b) {
+	if ((strcmp(nextline+1, "") != 0) && !strstr(nextline+1, "\r\n")) {
+		// This line is incomplete, so we should probably
+		// just put the incomplete line in the buffer and return.
+		
+		char *rest = strdup(nextline);
+	
+		memset(&b->buffer, 0, BUFSIZE);
+		strcpy(b->buffer, rest);
+		
+		free(rest);
+		return NULL;
+	}
+
+	char *line = strtok_r(NULL, "\r\n", &nextline);
+	if (line == NULL) {
+		memset(&b->buffer, 0, BUFSIZE);
+		return NULL;
+	}
+
+	return strdup(line);
 }

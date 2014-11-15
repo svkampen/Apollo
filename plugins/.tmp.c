@@ -15,6 +15,14 @@
 #include <limits.h>
 
 static FILE *fp;
+void *__asm__result___;
+
+#define doasm(CODE, INPUT, CLOBBERED_REGS) __asm__(CODE \
+												:"=r"(__asm__result___) \
+												:INPUT \
+												:CLOBBERED_REGS), \
+										   __asm__result___
+						
 
 void destroy(struct bot *bot) {
 	fclose(fp);
