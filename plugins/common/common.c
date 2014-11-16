@@ -21,6 +21,11 @@ void notice(struct bot *bot, struct message *msg) {
     free(host);
 }
 
+void giggle(struct bot *bot, char *chan) {
+	bot->proto->msg(chan, "\x01" "ACTION giggles" "\x01");
+}
+
+
 void say_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
 		bot->proto->msg(chan, "usage: say <args> -> tells you sth");
@@ -37,7 +42,7 @@ void join_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	}
 
 	if (args[0] == '0') {
-		bot->msg(bot, chan, "\x01" "ACTION giggles" "\x01");
+		giggle(bot, chan);
 		return;
 	}
 
@@ -55,7 +60,7 @@ void bash_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	}
 
 	if (strcmp(nick, bot->admin) != 0) {
-		bot->msg(bot, chan, "\x01" "ACTION giggles" "\x01");
+		giggle(bot, chan);
 		return;
 	}
 
