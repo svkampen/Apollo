@@ -51,7 +51,7 @@ int runproc(struct bot *bot, char *chan) {
 		if (startswith(msg, "note") || startswith(msg, "In function ‘init’")) {
 			continue;
 		}
-		bot->msg(bot, chan, strchr(line, ' ')+1);
+		bot->proto->msg(chan, strchr(line, ' ')+1);
 	}
 
 	waitpid(pid, &status, 0);
@@ -61,13 +61,13 @@ int runproc(struct bot *bot, char *chan) {
 
 void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->msg(bot, chan, "usage: run <c code>");
-		bot->msg(bot, chan, "runs c code in current process :0");
+		bot->proto->msg(chan, "usage: run <c code>");
+		bot->proto->msg(chan, "runs c code in current process :0");
 		return;
 	}
 
 	if (strcmp(nick, bot->admin) != 0) {
-		bot->msg(bot, chan, "\x01" "ACTION giggles" "\x01");
+		bot->proto->msg(chan, "\x01" "ACTION giggles" "\x01");
 		return;
 	}
 
@@ -104,7 +104,7 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 		hashmap_remove("plug", bot->plugins);
 	} else {
 		signal(SIGSEGV, handler);
-		bot->msg(bot, chan, "You think someone would do that? Raise SIGSEGV? On the INTERNET?");
+		bot->proto->msg(chan, "You think someone would do that? Raise SIGSEGV? On the INTERNET?");
 	}
 		
 }
