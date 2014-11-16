@@ -23,16 +23,16 @@ void notice(struct bot *bot, struct message *msg) {
 
 void say_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->msg(bot, chan, "usage: say <args> -> tells you sth");
+		bot->proto->msg(chan, "usage: say <args> -> tells you sth");
 		return;
 	}
 
-	bot->msg(bot, chan, args);
+	bot->proto->msg(chan, args);
 }
 
 void join_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->msg(bot, chan, "usage: join <channel>");
+		bot->proto->msg(chan, "usage: join <channel>");
 		return;
 	}
 
@@ -50,7 +50,7 @@ void part_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 
 void bash_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->msg(bot, chan, "usage: sh <command>");
+		bot->proto->msg(chan, "usage: sh <command>");
 		return;
 	}
 
@@ -69,7 +69,7 @@ void bash_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 
 	FILE *process = popen((const char*)command, "r");
 	while (fgets(line, 1024, process) != NULL) {
-		bot->msg(bot, chan, line);
+		bot->proto->msg(chan, line);
 	}
 
 	pclose(process);
