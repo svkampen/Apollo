@@ -12,25 +12,26 @@
 static struct bot *bot;
 #define EQ(a, b) (strcmp(a, b) == 0)
 
-void proto_reply(char *context, const char *fmt, ...) {
+
+void proto_reply(char *ctx, const char *fmt, ...) {
 	va_list a;
 	va_start(a, fmt);
 
-	char *sockprintf_format = calloc(1, strlen(fmt) + strlen(context) + 11);
+	char *sockprintf_format = calloc(1, strlen(fmt) + strlen(ctx) + 11);
 
-	sprintf(sockprintf_format, "PRIVMSG %s :%s", context, fmt);
+	sprintf(sockprintf_format, "PRIVMSG %s :%s", ctx, fmt);
 	vssockprintf(bot->socket, sockprintf_format, a);
 	free(sockprintf_format);
 	va_end(a);
 }
 
-void proto_pm_reply(char *context, const char *fmt, ...) {
+void proto_pm_reply(char *user, const char *fmt, ...) {
 	va_list a;
 	va_start(a, fmt);
 
-	char *sockprintf_format = calloc(1, strlen(fmt) + strlen(context) + 11);
+	char *sockprintf_format = calloc(1, strlen(fmt) + strlen(user) + 11);
 
-	sprintf(sockprintf_format, "PRIVMSG %s :%s", context, fmt);
+	sprintf(sockprintf_format, "PRIVMSG %s :%s", user, fmt);
 	vssockprintf(bot->socket, sockprintf_format, a);
 	free(sockprintf_format);
 	va_end(a);
