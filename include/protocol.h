@@ -1,5 +1,6 @@
 #ifndef _APOLLO_PROTOCOL_H_
 #define _APOLLO_PROTOCOL_H_
+#include <stdarg.h>
 
 struct bot;
 
@@ -9,15 +10,10 @@ struct apollo_protocol {
 	void (*tick)();
 	void (*destroy)();
 
-	void *protolib;
-};
+	void (*msg)(char *ctx, const char *fmt, ...);
+	void (*pm_msg)(char *user, const char *fmt, ...);
 
-struct protocol_message {
-	char *nick;
-	char *context;
-	char *msg;
-	void (*reply)(struct protocol_message *to, char *with);
-	void (*pm_reply)(struct protocol_message *to, char *with);
+	void *protolib;
 };
 
 void load_protocol(struct bot*);
