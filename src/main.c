@@ -36,6 +36,8 @@ int main(int argc, char *argv[]) {
 		exit(-1);
 	}
 
+	b.admin = "svkampen";
+
 	load_config(&b);
 	load_protocol(&b);
 
