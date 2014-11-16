@@ -1,12 +1,7 @@
 #ifndef _APOLLO_PROTO_IRC_PARSE_H_
 #define _APOLLO_PROTO_IRC_PARSE_H_
 #include "bot.h"
-
-struct message {
-	char *host;
-	char *meth;
-	char *arg;
-};
+#include "message.h"
 
 struct message *parse(char *data); 
 int startswith(const char *str, const char *pre);
