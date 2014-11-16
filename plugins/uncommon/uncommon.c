@@ -12,6 +12,12 @@
 
 jmp_buf *jmp;
 
+int startswith(const char *str, const char *pre) {
+	size_t lenpre = strlen(pre),
+		   lenstr = strlen(str);
+	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
+}
+
 static void handler(int sig) {
 	if (sig == SIGSEGV) {
 		longjmp(*jmp, 1);
