@@ -69,16 +69,20 @@ void destroy() {
 	hashmap_foreach(b.plugins, __unload_plugin);
 
 	hashmap_destroy(b.plugins);
+	hashmap_destroy(b.handlers);
+	hashmap_destroy(b.commands);
 	cJSON_Delete(b.config);
 }
 
 void init_handlers() {
 	b.plugins = hashmap_create(4);
+	b.handlers = hashmap_create(8);
+	b.commands = hashmap_create(8);
 
 	if (!load_plugin(&b, "common")) {
 		fprintf(stderr, "[core\tfail] error loading common plugin, exiting..\n");
 	}
-	
+
 	if (!load_plugin(&b, "uncommon")) {
 		printf("[core\tinfo] the uncommon plugin is not present.\n");
 	}
