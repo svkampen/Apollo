@@ -12,5 +12,5 @@ SET_TARGET_PROPERTIES(uncommon PROPERTIES PREFIX "")
 ADD_LIBRARY(common SHARED common/common.c)
 SET_TARGET_PROPERTIES(common PROPERTIES PREFIX "")
 
-ADD_LIBRARY(proto_irc SHARED proto_irc/proto_irc.c proto_irc/proto_irc_parse.c)
+ADD_LIBRARY(proto_irc SHARED proto_irc/proto_irc.c proto_irc/proto_irc_parse.c proto_irc/proto_irc_handlers.c)
 SET_TARGET_PROPERTIES(proto_irc PROPERTIES PREFIX "")

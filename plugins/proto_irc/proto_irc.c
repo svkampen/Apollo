@@ -3,6 +3,7 @@
 #include "net.h"
 #include "hashmap.h"
 #include "proto_irc_parse.h"
+#include "proto_irc_handlers.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -37,39 +38,11 @@ void proto_pm_reply(char *user, const char *fmt, ...) {
 	va_end(a);
 }
 
-void proto_privmsg(struct message *msg) {
-	char *strptr;
-	char *arg = strdup(msg->arg);
-	char *host = strdup(msg->host);
 
-	char *nick = strtok_r(host, "!", &strptr);
-	nick++;
-
-	strptr = NULL;
-
-	char *chan = strtok_r(arg, " ", &strptr);
-	char *message = strtok_r(NULL, "", &strptr);
-	message++;
-
-	printf("[irc\tinfo] [%s] <%s> %s\n", chan, nick, message);
-
-	if (EQ(nick, "svkampen") && EQ(message, "'quit")) {
-		proto_reply(chan, "..closing socket %d", bot->socket);		
-		bot->running = 0;
 	}
 
-	/* if (startswith(message, "'")) {
-		char *cmd = strtok_r(message+1, " ", &strptr);
-		char *args = strtok_r(NULL, "", &strptr);
 
-		callback cb = (callback)hashmap_get(cmd, bot->commands);
-		if (cb) {
-			cb(bot, nick, chan, args);
-		}
-	} */
 
-	free(arg);
-	free(host);
 }
 
 void proto_init(struct bot *b) {
