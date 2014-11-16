@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(apollo C)
-subdirs(src plugins hashmap)
-file(COPY hashmap/bin/libhashmap.so DESTINATION ${apollo_SOURCE_DIR}/bin)
+add_subdirectory(src)
+add_subdirectory(plugins)
+add_subdirectory(hashmap)
+set_target_properties(hashmap PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${apollo_SOURCE_DIR}/bin)
