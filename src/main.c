@@ -116,7 +116,7 @@ void run() {
 		b.proto->tick();
 	}
 }
-			
+
 void __msg(struct bot *bot, char *chan, char *msg) {
 	sockprintf(bot->socket, "PRIVMSG %s :%s", chan, msg);
 }
