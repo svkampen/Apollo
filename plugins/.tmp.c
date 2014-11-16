@@ -1,11 +1,11 @@
 #include "net.h"
 #include "bot.h"
-#include "handlers.h"
 #include "list.h"
 #include "message.h"
-#include "parse.h"
 #include "plugins.h"
 #include "hashmap.h"
+#include "protocol.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <string.h>
