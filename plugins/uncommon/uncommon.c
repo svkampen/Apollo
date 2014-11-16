@@ -2,9 +2,12 @@
 #include "bot.h"
 #include "message.h"
 #include "net.h"
+#include "plugins.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
+
 
 // sshhh
 #include <signal.h>
@@ -115,5 +118,6 @@ void init(struct bot *bot) {
 }
 
 void destroy(struct bot *bot) {
-	return;
+	hashmap_remove("run", bot->commands);
+	signal(SIGSEGV, SIG_DFL);
 }
