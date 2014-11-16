@@ -1,4 +1,5 @@
 #include "hashmap.h"
+#include "plugins.h"
 #include "bot.h"
 #include "message.h"
 #include "net.h"
@@ -81,9 +82,48 @@ void bash_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	free(command);
 }
 
+void plugin_load_cmd(struct bot *bot, char *nick, char *chan, char *args) {
+	if (!args) {
+		bot->proto->msg(chan, "usage: plugin.load <plugin>");
+		return;
+	}
+
+	if (strcmp(nick, bot->admin) != 0) {
+		giggle(bot, chan);
+		return;
+	}
+
+	load_plugin(bot, args);
+	bot->proto->msg(chan, "Loaded plugin %s.", args);
+}
+
+void plugin_unload_cmd(struct bot *bot, char *nick, char *chan, char *args) {
+	if (!args) {
+		bot->proto->msg(chan, "usage: plugin.unload <plugin>");
+		return;
+	}
+
+	if (strcmp(nick, bot->admin) != 0) {
+		giggle(bot, chan);
+		return;
+	}
+
+	void *plug = NULL;
+
+	if ((plug = hashmap_get(args, bot->plugins)) == NULL) {
+		bot->proto->msg(chan, "Plugin %s is not currently loaded!");
+		return;
+	}
+
+	__unload_plugin(args, plug);
+	hashmap_remove(args, bot->plugins);
+	bot->proto->msg(chan, "Unloaded plugin %s.", args);
+}
+	
 
 void init(struct bot *bot) {
     // initialize the plugin
+	
     Link *l = hashmap_get("NOTICE", bot->handlers);
     if (!l) {
         l = calloc(1, sizeof(Link));
@@ -95,9 +135,20 @@ void init(struct bot *bot) {
 	hashmap_set("join", join_cmd, bot->commands);
 	hashmap_set("part", part_cmd, bot->commands);
 	hashmap_set("sh", bash_cmd, bot->commands);
+	
+	hashmap_set("plugin.load", plugin_load_cmd, bot->commands);
+	hashmap_set("plugin.unload", plugin_unload_cmd, bot->commands);
 }
 
 void destroy(struct bot *bot) {
+	hashmap_remove("say", bot->commands);
+	hashmap_remove("join", bot->commands);
+	hashmap_remove("part", bot->commands);
+	hashmap_remove("sh", bot->commands);
+	
+	hashmap_remove("plugin.load", bot->commands);
+	hashmap_remove("plugin.unload", bot->commands);
+
 	Link *l = hashmap_get("NOTICE", bot->handlers);
 
 	if (!l) {
