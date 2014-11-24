@@ -51,11 +51,12 @@ int main(int argc, char *argv[]) {
 		freeaddrinfo(info);
 	}
 
-	b.proto->init(&b);
 	init_handlers();
+	b.proto->init(&b);
 
 	b.proto->connect();
 	run();
+	b.proto->destroy();
 	destroy();
 
 	close(b.socket);
