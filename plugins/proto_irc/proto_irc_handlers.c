@@ -46,7 +46,7 @@ void irc_invite(struct bot *bot, struct message *msg) {
 	char *args = strdup(msg->arg);
 	char *chan = last(args);
 
-	sockprintf(bot->socket, "JOIN :%s", chan);
+	sockprintf(bot->socket, "JOIN :%s", chan+1);
 
 	free(args);
 	free(chan);
