@@ -1,5 +1,11 @@
 #include "proto_irc_handlers.h"
 #include "proto_irc_parse.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include "net.h"
+
+#define EQ(a, b) (strcmp(a, b) == 0)
 typedef void (*msg_handler)(struct bot*, char*, char*, char*);
 
 void irc_privmsg(struct bot *bot, struct message *msg) {
