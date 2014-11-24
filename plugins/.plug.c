@@ -1,11 +1,11 @@
 #include "net.h"
 #include "bot.h"
-#include "handlers.h"
 #include "list.h"
 #include "message.h"
-#include "parse.h"
 #include "plugins.h"
 #include "hashmap.h"
+#include "protocol.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -30,5 +30,5 @@ void destroy(struct bot *bot) {
 
 void init (struct bot *bot) {
 	fp = fdopen(dup(bot->socket), "w");
-int i; printf("%p\n", &i); fflush(stdout);
+free(NULL);
 }
