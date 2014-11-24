@@ -12,6 +12,7 @@
 
 static struct bot *bot;
 #define EQ(a, b) (strcmp(a, b) == 0)
+typedef void (*handler_t)(struct bot*, struct message*);
 
 
 void proto_reply(char *ctx, const char *fmt, ...) {
@@ -39,16 +40,25 @@ void proto_pm_reply(char *user, const char *fmt, ...) {
 }
 
 
-	}
-
-
-
-}
-
 void proto_init(struct bot *b) {
 	bot = b;
+	Link *invite_link = hashmap_get("INVITE", b->handlers);
+	if (!invite_link) {
+		invite_link = calloc(1, sizeof(Link));
+		hashmap_set("INVITE", invite_link, b->handlers);
+	}
+
+	push_val(invite_link, (void*)irc_invite);
+
+	Link *privmsg_link = hashmap_get("PRIVMSG", b->handlers);
+	if (!privmsg_link) {
+		privmsg_link = calloc(1, sizeof(Link));
+		hashmap_set("PRIVMSG", privmsg_link, b->handlers);
+	}
+
+	push_val(privmsg_link, (void*)irc_privmsg);
 }
-	
+
 void proto_connect() {
 	printf("[irc\tinfo] registering with the server.\n");
 	sockprintf(bot->socket, "NICK %s", bot->nick);
@@ -79,23 +89,26 @@ void proto_tick() {
 			sockprintf(bot->socket, "JOIN #bots");
 		}
 
-		if (EQ(msg->meth, "PRIVMSG")) {
-			proto_privmsg(msg);
+		Link *handlers = hashmap_get(msg->meth, bot->handlers);
+		for (Link *i = handlers; i != NULL; i = i->next) {
+			((handler_t)i->ptr)(bot, msg);
 		}
-		
-		/* ll_link *handlers = hashmap_get(msg->meth, b.handlers);
-		for (ll_link *i = handlers; i != NULL; i = i->next) {
-			((handler_t)i->ptr)(&b, msg);
-		} */
-
 
 		freemsg(msg);
 		free(i);
 	}
 }
-	
 
-void proto_destroy() { ; }
-	
+void proto_destroy() {
+	Link *invite_link = hashmap_get("INVITE", bot->handlers);
+	if (invite_link) {
+		free_list(invite_link);
+	}
 
-struct apollo_protocol proto = {proto_init, proto_connect, proto_tick, proto_destroy};
+	Link *privmsg_link = hashmap_get("PRIVMSG", bot->handlers);
+	if (privmsg_link) {
+		free_list(privmsg_link);
+	}
+}
+
+struct apollo_protocol proto = {proto_init, proto_connect, proto_tick, proto_destroy, proto_reply, proto_pm_reply};
