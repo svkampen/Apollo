@@ -72,7 +72,7 @@ void proto_tick() {
 	}
 
 	for (; i != NULL; i = irc_nextline(bot)) {
-		
+
 		printf("%s\n", i);
 
 		if (startswith(i, "PING")) {
