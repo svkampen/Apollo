@@ -3,6 +3,5 @@
 #include "bot.h"
 
 void load_config(struct bot *bot);
-char *load_file(char *filename);
 
 #endif

@@ -1,5 +1,6 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${apollo_SOURCE_DIR}/bin)
-set(APOLLO_SRC_FILES cJSON.c config.c net.c main.c list.c plugins.c protocol.c)
+set(APOLLO_SRC_FILES cJSON.c config.c net.c main.c list.c plugins.c protocol.c
+	util.c)
 
 INCLUDE_DIRECTORIES(${apollo_SOURCE_DIR}/include ${apollo_SOURCE_DIR}/hashmap/include)
 LINK_DIRECTORIES(${apollo_SOURCE_DIR}/bin)
