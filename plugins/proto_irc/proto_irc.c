@@ -9,6 +9,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <errno.h>
+#include <netinet/in.h> // INET6_ADDRSTRLEN
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
 
 static struct bot *bot;
 #define EQ(a, b) (strcmp(a, b) == 0)
@@ -60,46 +68,83 @@ void proto_init(struct bot *b) {
 }
 
 void proto_connect() {
+	{
+		struct addrinfo *info = get_addr_info(bot->host, bot->port);
+
+		bot->socket = getsock(info);
+		bot->running = 1;
+
+		// we won't need this anymore.
+		freeaddrinfo(info);
+	}
+
 	printf("[irc\tinfo] registering with the server.\n");
 	sockprintf(bot->socket, "NICK %s", bot->nick);
 	sockprintf(bot->socket, "USER apollo * * :hi i'm apollo");
 }
 
 void proto_tick() {
-	char *i = irc_getline(bot);
-	if (i == NULL) {
-		return;
-	}
+	int nbytes;
+	char data[BUFSIZE/2];
 
-	for (; i != NULL; i = irc_nextline(bot)) {
+	while (bot->running) {
+		memset(&data, 0, BUFSIZE/2);
 
-		printf("%s\n", i);
+		recv:
+		if ((nbytes = recv(bot->socket, data, (BUFSIZE/2)-1, 0)) == -1) {
+			if (errno == EINTR) {
+				// what a pain in the ass,
+				// we got interrupted >.>
+				goto recv;
+			}
 
-		if (startswith(i, "PING")) {
-			char *t = last(i);
-			sockprintf(bot->socket, "PONG %s", t);
-			free(t);
+			perror("recv failed");
+			exit(4);
+		}
+
+		strcat(bot->buffer, data);
+
+		if (nbytes == 0) {
+			bot->running = 0;
+		}
+
+		char *i = irc_getline(bot);
+		if (i == NULL) {
+			return;
+		}
+
+		for (; i != NULL; i = irc_nextline(bot)) {
+
+			printf("%s\n", i);
+
+			if (startswith(i, "PING")) {
+				char *t = last(i);
+				sockprintf(bot->socket, "PONG %s", t);
+				free(t);
+				free(i);
+				continue;
+			}
+
+			struct message *msg = parse(i);
+
+			if (EQ(msg->meth, "422") || EQ(msg->meth, "376")) {
+				sockprintf(bot->socket, "JOIN #bots");
+			}
+
+			Link *handlers = hashmap_get(msg->meth, bot->handlers);
+			for (Link *i = handlers; i != NULL; i = i->next) {
+				((handler_t)i->ptr)(bot, msg);
+			}
+
+			freemsg(msg);
 			free(i);
-			continue;
 		}
-
-		struct message *msg = parse(i);
-
-		if (EQ(msg->meth, "422") || EQ(msg->meth, "376")) {
-			sockprintf(bot->socket, "JOIN #bots");
-		}
-
-		Link *handlers = hashmap_get(msg->meth, bot->handlers);
-		for (Link *i = handlers; i != NULL; i = i->next) {
-			((handler_t)i->ptr)(bot, msg);
-		}
-
-		freemsg(msg);
-		free(i);
 	}
 }
 
 void proto_destroy() {
+	close(bot->socket);
+
 	Link *invite_link = hashmap_get("INVITE", bot->handlers);
 	if (invite_link) {
 		free_list(invite_link);

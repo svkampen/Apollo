@@ -1,9 +1,4 @@
-#include <netinet/in.h> // INET6_ADDRSTRLEN
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <unistd.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,25 +36,14 @@ int main(int argc, char *argv[]) {
 	load_config(&b);
 	load_protocol(&b);
 
-	{
-		struct addrinfo *info = get_addr_info(b.host, b.port);
-
-		b.socket = getsock(info);
-		b.running = 1;
-
-		// we won't need this anymore.
-		freeaddrinfo(info);
-	}
-
 	init_handlers();
 	b.proto->init(&b);
 
 	b.proto->connect();
-	run();
+	b.proto->tick();
 	b.proto->destroy();
 	destroy();
 
-	close(b.socket);
 	dlclose(b.proto->protolib);
 
 	printf("[core\tinfo] bye!\n");
@@ -87,37 +71,4 @@ void init_handlers() {
 	if (!load_plugin(&b, "uncommon")) {
 		printf("[core\tinfo] the uncommon plugin is not present.\n");
 	}
-}
-
-void run() {
-	int nbytes;
-	char data[BUFSIZE/2];
-
-	while (b.running) {
-		memset(&data, 0, BUFSIZE/2);
-
-		recv:
-		if ((nbytes = recv(b.socket, data, (BUFSIZE/2)-1, 0)) == -1) {
-			if (errno == EINTR) {
-				// what a pain in the ass,
-				// we got interrupted >.>
-				goto recv;
-			}
-
-			perror("recv failed");
-			exit(4);
-		}
-
-		strcat(b.buffer, data);
-
-		if (nbytes == 0) {
-			b.running = 0;
-		}
-
-		b.proto->tick();
-	}
-}
-
-void __msg(struct bot *bot, char *chan, char *msg) {
-	sockprintf(bot->socket, "PRIVMSG %s :%s", chan, msg);
 }
