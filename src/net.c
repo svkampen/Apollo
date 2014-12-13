@@ -16,7 +16,7 @@
 void sendall(int sockfd, const char *msg) {
 	int sent;
 	int len = strlen(msg);
-	
+
 	sent = send(sockfd, msg, len, 0);
 	while (sent != len) {
 		sent += send(sockfd, msg+sent, len-sent, 0);
@@ -28,7 +28,7 @@ void *get_in_addr(struct sockaddr *sa) {
 	if (sa->sa_family == AF_INET) {
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}
-	
+
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
