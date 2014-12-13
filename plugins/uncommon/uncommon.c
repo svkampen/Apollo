@@ -7,24 +7,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "util.h"
 
+#include <sys/mman.h>
 
-// sshhh
-#include <signal.h>
-#include <setjmp.h>
-
-jmp_buf *jmp;
+int nullcall = 0;
 
 int startswith(const char *str, const char *pre) {
 	size_t lenpre = strlen(pre),
 		   lenstr = strlen(str);
 	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
-}
-
-static void handler(int sig) {
-	if (sig == SIGSEGV) {
-		longjmp(*jmp, 1);
-	}
 }
 
 int runproc(struct bot *bot, char *chan) {
@@ -78,8 +70,6 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 	FILE *f1 = fopen("../plugins/.tmp.c", "r");
 	FILE *f2 = fopen("../plugins/.plug.c", "w");
 	char line[1024];
-	jmp_buf jump;
-	jmp = &jump;
 
 	while (fgets(line, 1024, f1) != NULL) {
 		fprintf(f2, "%s", line);
@@ -101,23 +91,35 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 	}
 
 
-	if (!setjmp(jump)) {
-		load_plugin(bot, "plug");
-		unload_plugin(hashmap_get("plug", bot->plugins));
-		hashmap_remove("plug", bot->plugins);
-	} else {
-		signal(SIGSEGV, handler);
-		bot->proto->msg(chan, "You think someone would do that? Raise SIGSEGV? On the INTERNET?");
+	load_plugin(bot, "plug");
+	unload_plugin(hashmap_get("plug", bot->plugins));
+	hashmap_remove("plug", bot->plugins);
+
+	if (nullcall) {
+		bot->proto->msg(chan, "You called NULL, congrats >.>");
+		nullcall = 0;
 	}
-		
 }
 
 void init(struct bot *bot) {
+	/* int bytes[8];
+	for (int i = 0; i < 64; i += 8) {
+		bytes[i] = (long)&nullcall & (0xFF00000000000000 >> i);
+	}
+
+	char tocopy[] = {0x01, 0xb8, 0x00, 0x00, 0x48, 0x00, bytes[7], 0xbb, bytes[5], bytes[6],
+		bytes[3], bytes[4], bytes[1], bytes[2], 0x48, bytes[0], 0x03, 0x89, 0x00, 0xc3}; */
+
+	char *stuff = load_file("/proc/sys/vm/mmap_min_addr");
+	if (strcmp(stuff, "0") == 0) {
+		mmap(0, 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
+				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+		memset((char*)NULL, '\xc3', 1);
+	}
+	free(stuff);
 	hashmap_set("run", run_dmc, bot->commands);
-	signal(SIGSEGV, handler);
 }
 
 void destroy(struct bot *bot) {
 	hashmap_remove("run", bot->commands);
-	signal(SIGSEGV, SIG_DFL);
 }

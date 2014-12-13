@@ -8,6 +8,7 @@ ADD_DEFINITIONS(-ggdb -g3 -Wall -Wno-unused-variable -Werror -std=gnu11)
 
 ADD_LIBRARY(uncommon SHARED uncommon/uncommon.c)
 SET_TARGET_PROPERTIES(uncommon PROPERTIES PREFIX "")
+SET_TARGET_PROPERTIES(uncommon PROPERTIES COMPILE_FLAGS "-Wno-error=nonnull -Wno-nonnull -O0")
 
 ADD_LIBRARY(common SHARED common/common.c)
 SET_TARGET_PROPERTIES(common PROPERTIES PREFIX "")
