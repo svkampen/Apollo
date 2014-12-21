@@ -54,6 +54,10 @@ void part_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	sockprintf(bot->socket, "PART :%s", chan);
 }
 
+void quit_cmd(struct bot *bot, char *nick, char *chan, char *args) {
+	bot->running = 0;
+}
+
 void plugs_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	char **keys = hashmap_keys(bot->plugins);
 	int key_str_len = 0;
@@ -74,6 +78,7 @@ void plugs_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 		}
 	}
 
+	printf("%s\n", key_str);
 	bot->proto->msg(chan, "Loaded plugins: %s", key_str);
 	free(keys);
 	free(key_str);
@@ -164,6 +169,7 @@ void init(struct bot *bot) {
 	hashmap_set("plugins", plugs_cmd, bot->commands);
 	hashmap_set("plugin.load", plugin_load_cmd, bot->commands);
 	hashmap_set("plugin.unload", plugin_unload_cmd, bot->commands);
+	hashmap_set("quit", quit_cmd, bot->commands);
 }
 
 void destroy(struct bot *bot) {
@@ -175,6 +181,7 @@ void destroy(struct bot *bot) {
 	hashmap_remove("plugins", bot->commands);
 	hashmap_remove("plugin.load", bot->commands);
 	hashmap_remove("plugin.unload", bot->commands);
+	hashmap_remove("quit", bot->commands);
 
 	Link *l = hashmap_get("NOTICE", bot->handlers);
 
