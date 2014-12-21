@@ -17,7 +17,6 @@ struct double_link *push_link_top(struct double_link *list, struct double_link *
 }
 
 /* Sticks a link to the end of a list. May traverse list until tail.
- * 
  * @param list A pointer to a link in the list, preferably the tail.
  * @param link A pointer to the link that should be added to the list.
  * @return A pointer to the new tail of the list.
