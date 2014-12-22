@@ -123,8 +123,11 @@ void plugin_load_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 		return;
 	}
 
-	load_plugin(bot, args);
-	bot->proto->msg(chan, "Loaded plugin %s.", args);
+	if (load_plugin(bot, args)) {
+		bot->proto->msg(chan, "Loaded plugin %s.", args);
+	} else {
+		bot->proto->msg(chan, "Error loading plugin, see console.");
+	}
 }
 
 void plugin_unload_cmd(struct bot *bot, char *nick, char *chan, char *args) {
