@@ -24,6 +24,7 @@ int load_plugin(struct bot *bot, char *name) {
 	if (!init) {
 		fprintf(stderr, "[core\twarn] error loading plugin init: %s\n", dlerror());
 		free(filename);
+		dlclose(plug);
 		return 0;
 	}
 
