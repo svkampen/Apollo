@@ -9,7 +9,7 @@ int load_plugin(struct bot *bot, char *name) {
 	strcat(filename, "./plugins/");
 	strcat(filename, name);
 	strcat(filename, ".so");
-	
+
 	void (*init)(struct bot*);
 
 	void *plug = dlopen(filename, RTLD_NOW);
