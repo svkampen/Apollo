@@ -110,13 +110,9 @@ void init(struct bot *bot) {
 	char tocopy[] = {0x01, 0xb8, 0x00, 0x00, 0x48, 0x00, bytes[7], 0xbb, bytes[5], bytes[6],
 		bytes[3], bytes[4], bytes[1], bytes[2], 0x48, bytes[0], 0x03, 0x89, 0x00, 0xc3}; */
 
-	char *stuff = load_file("/proc/sys/vm/mmap_min_addr");
-	if (strcmp(stuff, "0") == 0) {
-		mmap(0, 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
-				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-		memset((char*)NULL, '\xc3', 1);
-	}
-	free(stuff);
+	/* mmap(0, 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+	memset((char*)NULL, '\xc3', 1); */
 	hashmap_set("run", run_dmc, bot->commands);
 }
 
