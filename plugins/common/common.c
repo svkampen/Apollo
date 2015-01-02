@@ -22,6 +22,28 @@ void notice(struct bot *bot, struct message *msg) {
     free(host);
 }
 
+void ctcp(struct bot *bot, struct message *msg) {
+	char *strptr;
+	char *arg = strdup(msg->arg);
+	char *host = strdup(msg->host);
+
+	char *nick = strtok_r(host, "!", &strptr);
+	nick++;
+
+	strptr = NULL;
+	char *chan = strtok_r(arg, " ", &strptr);
+	char *message = strtok_r(NULL, "", &strptr);
+	message++;
+
+	if (message[0] == '\x01') {
+		char *ctcp = strtok_r(message+1, "\x01", &strptr);
+		sockprintf(bot->socket, "NOTICE %s \001%s UNKNOWN\001\r\n", nick, ctcp);
+	}
+
+	free(arg);
+	free(host);
+}
+
 void giggle(struct bot *bot, char *chan) {
 	bot->proto->msg(chan, "\x01" "ACTION giggles" "\x01");
 }
@@ -123,11 +145,8 @@ void plugin_load_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 		return;
 	}
 
-	if (load_plugin(bot, args)) {
-		bot->proto->msg(chan, "Loaded plugin %s.", args);
-	} else {
-		bot->proto->msg(chan, "Error loading plugin, see console.");
-	}
+	load_plugin(bot, args);
+	bot->proto->msg(chan, "Loaded plugin %s.", args);
 }
 
 void plugin_unload_cmd(struct bot *bot, char *nick, char *chan, char *args) {
@@ -163,6 +182,13 @@ void init(struct bot *bot) {
         hashmap_set("NOTICE", l, bot->handlers);
     }
     push_val(l, (void*)notice);
+
+	l = hashmap_get("PRIVMSG", bot->handlers);
+	if (!l) {
+		l = calloc(1, sizeof(Link));
+		hashmap_set("PRIVMSG", l, bot->handlers);
+	}
+	push_val(l, (void*)ctcp);
 
 	hashmap_set("say", say_cmd, bot->commands);
 	hashmap_set("join", join_cmd, bot->commands);
