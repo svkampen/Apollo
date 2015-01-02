@@ -13,9 +13,14 @@
 #include <errno.h>
 #include <stdio.h>
 #include <limits.h>
+#include <time.h>
 
 static FILE *fp;
 void *__asm__result___;
+
+#define _(...) bot->proto->msg("#programming", __VA_ARGS__);
+
+typedef int __;
 
 #define doasm(CODE, INPUT, CLOBBERED_REGS) __asm__(CODE \
 												:"=r"(__asm__result___) \
