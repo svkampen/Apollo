@@ -8,7 +8,7 @@ ENDIF(NOT DEFINED BUILD_BF)
 
 INCLUDE_DIRECTORIES(../include ../hashmap/include)
 
-ADD_DEFINITIONS(-ggdb -g3 -Wall -Wno-unused-variable -Werror -std=gnu11)
+ADD_DEFINITIONS(-ggdb -g3 -O0 -Wall -Wno-unused-variable -Werror -std=gnu11)
 
 ADD_LIBRARY(uncommon SHARED uncommon/uncommon.c)
 SET_TARGET_PROPERTIES(uncommon PROPERTIES PREFIX "")
@@ -20,6 +20,7 @@ SET_TARGET_PROPERTIES(common PROPERTIES PREFIX "")
 IF (BUILD_BF)
 	ADD_LIBRARY(bf SHARED bf/bf.c)
 	SET_TARGET_PROPERTIES(bf PROPERTIES PREFIX "")
+	ADD_CUSTOM_COMMAND(TARGET bf PRE_BUILD COMMAND rm -rf BCI 2>/dev/null)
 	ADD_CUSTOM_COMMAND(TARGET bf POST_BUILD COMMAND git clone https://github.com/svkampen/BCI COMMAND make -sC BCI shared COMMAND cp BCI/libbci.so ${apollo_SOURCE_DIR}/bin/plugins)
 ENDIF (BUILD_BF)
 
