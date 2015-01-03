@@ -37,7 +37,9 @@ void ctcp(struct bot *bot, struct message *msg) {
 
 	if (message[0] == '\x01') {
 		char *ctcp = strtok_r(message+1, "\x01", &strptr);
-		sockprintf(bot->socket, "NOTICE %s \001%s UNKNOWN\001\r\n", nick, ctcp);
+		if (strcmp(ctcp, "VERSION") == 0) {
+			sockprintf(bot->socket, "NOTICE %s \001%s apollo version 1.2 - svkampen\001\r\n", nick, ctcp);
+		}
 	}
 
 	free(arg);
