@@ -16,11 +16,13 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 
 static struct bot *bot;
 #define EQ(a, b) (strcmp(a, b) == 0)
 typedef void (*handler_t)(struct bot*, struct message*);
+typedef void (*tick_fn)(struct bot*);
 
 
 void proto_reply(char *ctx, const char *fmt, ...) {
@@ -72,6 +74,7 @@ void proto_connect() {
 		struct addrinfo *info = get_addr_info(bot->host, bot->port);
 
 		bot->socket = getsock(info);
+		fcntl(bot->socket, F_SETFL, O_NONBLOCK);
 		bot->running = 1;
 
 		// we won't need this anymore.
@@ -83,12 +86,24 @@ void proto_connect() {
 	sockprintf(bot->socket, "USER apollo * * :hi i'm apollo");
 }
 
+void tick_functions() {
+	// run all of the tick-based functions (fifo_tick, et cetera)
+	Link *tick_based = bot->tick_functions;
+	for (Link *i = bot->tick_functions; i != NULL; i = i->next) {
+		if (i->ptr)
+			((tick_fn)i->ptr)(bot);
+	}
+}
+
 void proto_tick() {
 	int nbytes;
 	char data[BUFSIZE/2];
 
 	while (bot->running) {
 		memset(&data, 0, BUFSIZE/2);
+
+tick:
+		tick_functions();
 
 		recv:
 		if ((nbytes = recv(bot->socket, data, (BUFSIZE/2)-1, 0)) == -1) {
@@ -97,6 +112,12 @@ void proto_tick() {
 				// we got interrupted >.>
 				goto recv;
 			}
+
+			if (errno == EAGAIN) {
+				usleep(16666);
+				goto tick;
+			}
+
 
 			perror("recv failed");
 			exit(4);
@@ -135,7 +156,6 @@ void proto_tick() {
 			for (Link *i = handlers; i != NULL; i = i->next) {
 				((handler_t)i->ptr)(bot, msg);
 			}
-
 			freemsg(msg);
 			free(i);
 		}

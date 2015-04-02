@@ -64,6 +64,8 @@ void init_handlers() {
 	b.handlers = hashmap_create(8);
 	b.commands = hashmap_create(8);
 
+	b.tick_functions = calloc(1, sizeof(struct double_link));
+
 	if (!load_plugin(&b, "common")) {
 		fprintf(stderr, "[core\tfail] error loading common plugin, exiting..\n");
 	}

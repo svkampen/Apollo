@@ -11,13 +11,15 @@ struct bot {
 	/** NETWORKING **/
 	int socket;
 	char buffer[BUFSIZE];
-	
+
 	char *admin;
 	uint8_t running;
 
 	struct hashmap *handlers;
 	struct hashmap *commands;
 	struct hashmap *plugins;
+
+	struct double_link *tick_functions;
 
 	char *host, *port, *nick;
 
