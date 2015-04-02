@@ -8,7 +8,7 @@ ENDIF(NOT DEFINED BUILD_BF)
 
 INCLUDE_DIRECTORIES(../include ../hashmap/include)
 
-ADD_DEFINITIONS(-ggdb -g3 -O0 -Wall -Wno-unused-variable -Werror -std=gnu11)
+ADD_DEFINITIONS(-ggdb -g3 -O0 -Wall -Wno-unused-variable -std=gnu11)
 
 ADD_LIBRARY(uncommon SHARED uncommon/uncommon.c)
 SET_TARGET_PROPERTIES(uncommon PROPERTIES PREFIX "")
@@ -16,6 +16,9 @@ SET_TARGET_PROPERTIES(uncommon PROPERTIES COMPILE_FLAGS "-Wno-error=nonnull -Wno
 
 ADD_LIBRARY(common SHARED common/common.c)
 SET_TARGET_PROPERTIES(common PROPERTIES PREFIX "")
+
+ADD_LIBRARY(number SHARED number/number.c)
+SET_TARGET_PROPERTIES(number PROPERTIES PREFIX "")
 
 IF (BUILD_BF)
 	ADD_LIBRARY(bf SHARED bf/bf.c)
