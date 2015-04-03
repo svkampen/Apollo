@@ -136,9 +136,9 @@ void bash_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	free(command);
 }
 
-void plugin_load_cmd(struct bot *bot, char *nick, char *chan, char *args) {
+void pload_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->proto->msg(chan, "usage: plugin.load <plugin>");
+		bot->proto->msg(chan, "usage: pload <plugin>");
 		return;
 	}
 
@@ -151,9 +151,9 @@ void plugin_load_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	bot->proto->msg(chan, "Loaded plugin %s.", args);
 }
 
-void plugin_unload_cmd(struct bot *bot, char *nick, char *chan, char *args) {
+void puload_cmd(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->proto->msg(chan, "usage: plugin.unload <plugin>");
+		bot->proto->msg(chan, "usage: puload <plugin>");
 		return;
 	}
 
@@ -198,8 +198,8 @@ void init(struct bot *bot) {
 	hashmap_set("sh", bash_cmd, bot->commands);
 
 	hashmap_set("plugins", plugs_cmd, bot->commands);
-	hashmap_set("plugin.load", plugin_load_cmd, bot->commands);
-	hashmap_set("plugin.unload", plugin_unload_cmd, bot->commands);
+	hashmap_set("pload", pload_cmd, bot->commands);
+	hashmap_set("puload", puload_cmd, bot->commands);
 	hashmap_set("quit", quit_cmd, bot->commands);
 }
 
@@ -210,8 +210,8 @@ void destroy(struct bot *bot) {
 	hashmap_remove("sh", bot->commands);
 
 	hashmap_remove("plugins", bot->commands);
-	hashmap_remove("plugin.load", bot->commands);
-	hashmap_remove("plugin.unload", bot->commands);
+	hashmap_remove("pload", bot->commands);
+	hashmap_remove("puload", bot->commands);
 	hashmap_remove("quit", bot->commands);
 
 	Link *l = hashmap_get("NOTICE", bot->handlers);
