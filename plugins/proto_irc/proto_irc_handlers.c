@@ -8,6 +8,21 @@
 #define EQ(a, b) (strcmp(a, b) == 0)
 typedef void (*msg_handler)(struct bot*, char*, char*, char*);
 
+void irc_chan_join(struct bot *bot, struct message *msg) {
+	char *strptr;
+	char *arg = strdup(msg->arg);
+	char *host = strdup(msg->host);
+
+	char *nick = strtok_r(arg, " ", &strptr);
+	char *chan = strtok_r(NULL, " ", &strptr);
+
+	VEC_PUSH(bot->channels, strdup(chan));
+	printf("[irc\tinfo] joined channel %s\n", chan);
+
+	free(arg);
+	free(host);
+}
+
 void irc_privmsg(struct bot *bot, struct message *msg) {
 	char *strptr;
 	char *arg = strdup(msg->arg);

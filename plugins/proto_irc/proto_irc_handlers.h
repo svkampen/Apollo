@@ -3,6 +3,7 @@
 #include "bot.h"
 #include "message.h"
 
+void irc_chan_join(struct bot *bot, struct message *msg);
 void irc_privmsg(struct bot *bot, struct message *msg);
 void irc_invite(struct bot *bot, struct message *msg);
 

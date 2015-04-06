@@ -4,8 +4,15 @@
 #include "hashmap.h"
 #include "cJSON.h"
 #include "protocol.h"
+#include "vector.h"
 
 #define BUFSIZE 3072
+
+struct string_list {
+	int size;
+	int index;
+	char **list;
+};
 
 struct bot {
 	/** NETWORKING **/
@@ -18,6 +25,7 @@ struct bot {
 	struct hashmap *handlers;
 	struct hashmap *commands;
 	struct hashmap *plugins;
+	struct string_list *channels;
 
 	struct double_link *tick_functions;
 

@@ -56,10 +56,17 @@ void destroy() {
 	hashmap_destroy(b.plugins);
 	hashmap_destroy(b.handlers);
 	hashmap_destroy(b.commands);
+
+	for (int i = 0; i < b.channels->index; ++i) {
+		free(b.channels->list[i]);
+	}
+	VEC_DESTROY(b.channels);
 	cJSON_Delete(b.config);
 }
 
 void init_handlers() {
+	b.channels = calloc(1, sizeof(b.channels));
+	VEC_INIT(b.channels, 4);
 	b.plugins = hashmap_create(4);
 	b.handlers = hashmap_create(8);
 	b.commands = hashmap_create(8);

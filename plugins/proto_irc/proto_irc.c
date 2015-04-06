@@ -60,6 +60,14 @@ void proto_init(struct bot *b) {
 
 	push_val(invite_link, (void*)irc_invite);
 
+	Link *chanjoin_link = hashmap_get("332", b->handlers);
+	if (!chanjoin_link) {
+		chanjoin_link = calloc(1, sizeof(Link));
+		hashmap_set("332", chanjoin_link, b->handlers);
+	}
+
+	push_val(chanjoin_link, (void*)irc_chan_join);
+
 	Link *privmsg_link = hashmap_get("PRIVMSG", b->handlers);
 	if (!privmsg_link) {
 		privmsg_link = calloc(1, sizeof(Link));
