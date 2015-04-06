@@ -4,6 +4,7 @@ Apollo is an IRC bot written in C.
 #### Requirements
 
  * CMake (2.8 or higher)
+ * GCC/GOLD (for -Wl,--dynamic-list)
 
 #### Compiling
 After `git clone`ing this repository, you will first need to initialize the submodules: `git submodule init` and `git submodule update`.
