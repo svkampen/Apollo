@@ -176,4 +176,4 @@ void proto_destroy() {
 	}
 }
 
-struct apollo_protocol proto = {proto_init, proto_connect, proto_tick, proto_destroy, proto_reply, proto_pm_reply};
+struct apollo_protocol proto = {"irc", proto_init, proto_connect, proto_tick, proto_destroy, proto_reply, proto_pm_reply};

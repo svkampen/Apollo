@@ -5,6 +5,7 @@
 struct bot;
 
 struct apollo_protocol {
+	char *name;
 	void (*init)(struct bot*);
 	void (*connect)();
 	void (*tick)();
