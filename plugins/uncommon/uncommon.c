@@ -10,6 +10,7 @@
 #include "util.h"
 
 #include <sys/mman.h>
+#include <stdio.h>
 
 int nullcall = 0;
 
@@ -19,7 +20,7 @@ int startswith(const char *str, const char *pre) {
 	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
 }
 
-int runproc(struct bot *bot, char *chan) {
+int runproc(struct bot *bot, char *chan, uint8_t is_cpp) {
 	pid_t pid = 0;
 	int pipefd[2];
 	FILE *output;
@@ -35,7 +36,11 @@ int runproc(struct bot *bot, char *chan) {
 		close(pipefd[0]);
 		dup2(pipefd[1], STDOUT_FILENO);
 		dup2(pipefd[1], STDERR_FILENO);
-		execl("/bin/bash", "/bin/bash", "-c", "cd ../plugins; python3 createplug.py", (char*) NULL);
+		if (is_cpp) {
+			execl("/bin/bash", "/bin/bash", "-c", "cd ../plugins; python3 createplug.py cpp", (char*) NULL);
+		} else {
+			execl("/bin/bash", "/bin/bash", "-c", "cd ../plugins; python3 createplug.py", (char*) NULL);
+		}
 	}
 
 	close(pipefd[1]);
@@ -56,8 +61,7 @@ int runproc(struct bot *bot, char *chan) {
 
 void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 	if (!args) {
-		bot->proto->msg(chan, "usage: run <c code>");
-		bot->proto->msg(chan, "runs c code in current process :0");
+		bot->proto->msg(chan, "usage: run [-p] <c code>");
 		return;
 	}
 
@@ -66,25 +70,25 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 		return;
 	}
 
+	uint8_t is_cpp = 0;
+	system("cp ../plugins/.tmp.c ../plugins/.plug.c");
+	FILE *f2 = fopen("../plugins/.plug.c", "a");
 
-	FILE *f1 = fopen("../plugins/.tmp.c", "r");
-	FILE *f2 = fopen("../plugins/.plug.c", "w");
-	char line[1024];
-
-	while (fgets(line, 1024, f1) != NULL) {
-		fprintf(f2, "%s", line);
+	if (startswith(args, "-p")) {
+		fprintf(f2, "%s", strchr(args, ' ')+1);
+		is_cpp = 1;
+	} else {
+		fprintf(f2, "%s", args);
 	}
 
-	fprintf(f2, "%s", args);
-	if (!args[strlen(args)-1] == ';') {
+	if (!(args[strlen(args)-1] == ';')) {
 		fprintf(f2, ";");
 	}
 	fprintf(f2, "\n}");
 
-	fclose(f1);
 	fclose(f2);
 
-	int code = runproc(bot, chan);
+	int code = runproc(bot, chan, is_cpp);
 
 	if (code != 0) {
 		return;
@@ -94,11 +98,6 @@ void run_dmc(struct bot *bot, char *nick, char *chan, char *args) {
 	load_plugin(bot, "plug");
 	unload_plugin(hashmap_get("plug", bot->plugins));
 	hashmap_remove("plug", bot->plugins);
-
-	if (nullcall) {
-		bot->proto->msg(chan, "You called NULL, congrats >.>");
-		nullcall = 0;
-	}
 }
 
 void init(struct bot *bot) {

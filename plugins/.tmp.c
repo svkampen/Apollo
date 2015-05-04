@@ -5,6 +5,7 @@
 #include "plugins.h"
 #include "hashmap.h"
 #include "protocol.h"
+#include "httpapi.h"
 #include "config.h"
 
 #include <stdlib.h>
@@ -14,6 +15,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <time.h>
+#include <unistd.h>
+
+typedef struct http_response httpresp;
 
 static FILE *fp;
 void *__asm__result___;
@@ -27,11 +31,16 @@ typedef int __;
 												:INPUT \
 												:CLOBBERED_REGS), \
 										   __asm__result___
-						
-
+#ifdef __cplusplus
+extern "C"
+#endif
 void destroy(struct bot *bot) {
 	fclose(fp);
 }
 
+
+#ifdef __cplusplus
+extern "C"
+#endif
 void init (struct bot *bot) {
 	fp = fdopen(dup(bot->socket), "w");
